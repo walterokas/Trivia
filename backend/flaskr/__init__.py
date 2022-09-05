@@ -1,10 +1,18 @@
-import os
+from email.mime import base
+import os, sys
+from unicodedata import category
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import random
 
-from backend.models import setup_db, Question, Category
+# Define path of the parent folder containing the models
+current = os.path.dirname(os.path.realpath(__file__))
+parent = os.path.dirname(current)
+sys.path.append(parent)
+
+
+from models import setup_db, Question, Category
 
 QUESTIONS_PER_PAGE = 10
 
@@ -12,20 +20,45 @@ def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__)
     setup_db(app)
+    print("App Created Successful")
 
     """
     @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
     """
+    cors = CORS(app, resources={r"/": {"origins": "*"}})
 
     """
     @TODO: Use the after_request decorator to set Access-Control-Allow
     """
+    @app.after_request
+    def add_cors(resp):
+        #Ensure all responses have the CORS headers. This ensures any failures are also accessible by the client.
+        resp.headers['Access-Control-Allow-Origin'] = Flask.request.headers.get('Origin', '*')
+        resp.headers['Access-Control-Allow-Credentials'] = 'true'
+        resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS, GET, PUT, DELETE'
+        resp.headers['Access-Control-Allow-Headers'] = Flask.request.headers.get('Access-COntrol-Request-Headers', 'Authorization')
+
+        #set low for debugging
+        if app.debug:
+            resp.headers['Acess-Control-Max-Age'] = '1'
+        return resp
 
     """
     @TODO:
     Create an endpoint to handle GET requests
     for all available categories.
     """
+    @app.route('/categories', methods=['GET'])
+    def listCategories():
+        categories = Category.query.all()
+        catDict = {}
+        count = 0
+        for category in categories:
+            catDict[count] = format(category)
+            count += 1
+    
+        #{format(category) for category in categories}
+        return catDict
 
 
     """
@@ -34,7 +67,24 @@ def create_app(test_config=None):
     including pagination (every 10 questions).
     This endpoint should return a list of questions,
     number of total questions, current category, categories.
+    """
+    @app.route('/questions', methods=['GET'])
+    def listQuestions():
+        page = request.args.get('page', 1, type=int)
+        # pagination = Question.query.order_by(category).all().paginate(page, per_page=QUESTIONS_PER_PAGE)
+        questions = Question.query.order_by(category).all()
+        pagination = questions.paginate(page, per_page=QUESTIONS_PER_PAGE)
 
+        result = {
+            "questions": [question.question for question in questions],
+            "total_questions": questions.count(),
+            "categories": [],
+            "current_category": []
+        }
+
+        return result
+
+    """
     TEST: At this point, when you start the application
     you should see questions and categories generated,
     ten questions per page and pagination at the bottom of the screen for three pages.
