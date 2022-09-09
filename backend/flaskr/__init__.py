@@ -50,17 +50,13 @@ def create_app(test_config=None):
     """
     @app.route('/categories', methods=['GET'])
     def listCategories():
+
         categories = Category.query.all()
-        print(categories)
-        catDict = {}
-        count = 0
-        for category in categories:
-            catDict[count] = format(category.type)
-            count += 1
-    
-        #{format(category) for category in categories}
-        # return json.dumps(catDict)
-        return jsonify(catDict)
+        formatted_categories = [category.type for category in categories]
+        result = {
+            "categories": formatted_categories
+        }
+        return jsonify(result)
 
 
     """
@@ -125,7 +121,32 @@ def create_app(test_config=None):
     Create an endpoint to POST a new question,
     which will require the question and answer text,
     category, and difficulty score.
+    """
+    @app.route('/questions/add', methods=['POST'])
+    def create_Question():
+        if request.method == 'POST':
+            print(request.form)
+        print(request.form)
 
+        # try:
+        # artist = Artist(
+        #     name = request.form['name'],
+        #     genres = request.form['genres'],
+        #     city = request.form['city'],
+        #     state = request.form['state'],
+        #     phone = request.form['phone'],
+        #     website = request.form['website_link'],
+        #     facebook_link = request.form['facebook_link'],
+        #     seeking_venue = True if request.form.get('seeking_venue', False) else False,
+        #     seeking_description = request.form['seeking_description'],
+        #     image_link = request.form['image_link'],       
+        # )
+        # db.session.add(artist)
+        # db.session.commit()
+
+        return jsonify({"Error": "Failed"})
+
+    """
     TEST: When you submit a question on the "Add" tab,
     the form will clear and the question will appear at the end of the last page
     of the questions list in the "List" tab.
@@ -136,7 +157,28 @@ def create_app(test_config=None):
     Create a POST endpoint to get questions based on a search term.
     It should return any questions for whom the search term
     is a substring of the question.
+    """
+    @app.route('/questions/search', methods=['POST'])
+    def search_question():
+        page = request.args.get('page', 1 , type=int)
+        start = (page-1) * QUESTIONS_PER_PAGE
+        end = start + QUESTIONS_PER_PAGE
 
+        searchTerm = request.form.get('searchTerm')
+        print(searchTerm)
+        questions = Question.query.filter(Question.question.ilike("%{}%".format(searchTerm)))
+
+        formatted_questions = [question.format() for question in questions]
+
+        result = {
+            "questions": formatted_questions[start:end],
+            "total_questions": len(questions),
+            "current_category": []
+        }
+
+        return jsonify(result)
+
+    """
     TEST: Search by any phrase. The questions list will update to include
     only question that include that string within their question.
     Try using the word "title" to start.
@@ -145,7 +187,25 @@ def create_app(test_config=None):
     """
     @TODO:
     Create a GET endpoint to get questions based on category.
+    """
+    @app.route('/categories/<int:id>/questions', methods=['GET'])
+    def getQuestionsByCategory(id):
+        page = request.args.get('page', 1 , type=int)
+        start = (page-1) * QUESTIONS_PER_PAGE
+        end = start + QUESTIONS_PER_PAGE
 
+        questions = Question.query.filter_by(category=str(id))
+        formatted_questions = [question.format() for question in questions]
+
+        result = {
+            "questions": formatted_questions[start:end],
+            "total_questions": questions.count(),
+            "current_category": []
+        }
+
+        return jsonify(result)
+
+    """
     TEST: In the "List" tab / main screen, clicking on one of the
     categories in the left column will cause only questions of that
     category to be shown.
