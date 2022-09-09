@@ -1,5 +1,5 @@
 from email.mime import base
-import os, sys
+import os, sys, json
 from unicodedata import category
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
@@ -33,10 +33,10 @@ def create_app(test_config=None):
     @app.after_request
     def add_cors(resp):
         #Ensure all responses have the CORS headers. This ensures any failures are also accessible by the client.
-        resp.headers['Access-Control-Allow-Origin'] = Flask.request.headers.get('Origin', '*')
-        resp.headers['Access-Control-Allow-Credentials'] = 'true'
-        resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS, GET, PUT, DELETE'
-        resp.headers['Access-Control-Allow-Headers'] = Flask.request.headers.get('Access-COntrol-Request-Headers', 'Authorization')
+        
+        resp.headers.add('Access-Control-Allow-Origin', '*')
+        resp.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        resp.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE')
 
         #set low for debugging
         if app.debug:
@@ -51,14 +51,16 @@ def create_app(test_config=None):
     @app.route('/categories', methods=['GET'])
     def listCategories():
         categories = Category.query.all()
+        print(categories)
         catDict = {}
         count = 0
         for category in categories:
-            catDict[count] = format(category)
+            catDict[count] = format(category.type)
             count += 1
     
         #{format(category) for category in categories}
-        return catDict
+        # return json.dumps(catDict)
+        return jsonify(catDict)
 
 
     """
@@ -70,19 +72,29 @@ def create_app(test_config=None):
     """
     @app.route('/questions', methods=['GET'])
     def listQuestions():
-        page = request.args.get('page', 1, type=int)
-        # pagination = Question.query.order_by(category).all().paginate(page, per_page=QUESTIONS_PER_PAGE)
-        questions = Question.query.order_by(category).all()
-        pagination = questions.paginate(page, per_page=QUESTIONS_PER_PAGE)
+        page = request.args.get('page', 1 , type=int)
+        start = (page-1) * QUESTIONS_PER_PAGE
+        end = start + QUESTIONS_PER_PAGE
+        
+        questions = Question.query.all()
+
+        formatted_questions = [question.format() for question in questions]
+        
+        formatted_categories = {}
+        for category in Category.query.all():
+            formatted_categories[category.id] = category.type
 
         result = {
-            "questions": [question.question for question in questions],
-            "total_questions": questions.count(),
-            "categories": [],
+            "questions": formatted_questions[start:end],
+            "total_questions": len(questions),
+            # "categories": list({category.type for category in Category.query.all()}), #set comprehension cast to list
+            "categories": formatted_categories,
             "current_category": []
         }
 
-        return result
+        # return json.dumps(result)
+        return jsonify(result)
+
 
     """
     TEST: At this point, when you start the application
