@@ -260,5 +260,45 @@ def create_app(test_config=None):
     including 404 and 422.
     """
 
+    @app.errorhandler(401)
+    def unauthorized(e):
+        return jsonify({
+            "success": False,
+            "error": 401,
+            "message": "Unauthorized"
+        }), 401
+
+    @app.errorhandler(403)
+    def forbidden(e):
+        return jsonify({
+            "success": False,
+            "error": 403,
+            "message": "Forbidden"
+        }), 403
+
+    @app.errorhandler(404)
+    def not_found(e):
+        return jsonify({
+            "success": False,
+            "error": 404,
+            "message": "Not Found"
+        }), 404
+
+    @app.errorhandler(405)
+    def method_not_allowed(e):
+        return jsonify({
+            "success": False,
+            "error": 405,
+            "message": "Method Not Allowed"
+        }), 405
+
+    @app.errorhandler(422)
+    def unprocessable(e):
+        return jsonify({
+            "success": False,
+            "error": 422,
+            "message": "Unprocessable Entity"
+        }),422
+
     return app
 
