@@ -125,26 +125,18 @@ def create_app(test_config=None):
     @app.route('/questions/add', methods=['POST'])
     def create_Question():
         if request.method == 'POST':
-            print(request.form)
-        print(request.form)
+            data = json.loads(request.data)
 
-        # try:
-        # artist = Artist(
-        #     name = request.form['name'],
-        #     genres = request.form['genres'],
-        #     city = request.form['city'],
-        #     state = request.form['state'],
-        #     phone = request.form['phone'],
-        #     website = request.form['website_link'],
-        #     facebook_link = request.form['facebook_link'],
-        #     seeking_venue = True if request.form.get('seeking_venue', False) else False,
-        #     seeking_description = request.form['seeking_description'],
-        #     image_link = request.form['image_link'],       
-        # )
-        # db.session.add(artist)
-        # db.session.commit()
+            question_obj = Question(
+                question = data.get('question', None),
+                answer = data.get('answer', None),
+                category = data.get('category', None),
+                difficulty = data.get('difficulty', None)
+            )
 
-        return jsonify({"Error": "Failed"})
+            Question.insert(question_obj)
+
+        return jsonify({"Status": "Question Added Successfully"})
 
     """
     TEST: When you submit a question on the "Add" tab,
@@ -232,20 +224,13 @@ def create_app(test_config=None):
             random.shuffle(formatted_questions)
 
             # print("FORMATTED QUESTIONS: ", formatted_questions)
-
-            qn = None
-            for question in formatted_questions:
-                if not question['id'] in prevQuestions:
-                    prevQuestions.append(question['id'])
-                    qn = question['question']
-                    break
-                else:
-                    continue
+            question = formatted_questions[0]
             
         result = {
-            "question":qn, 
+            "question":question, 
             # "prevQuestions":prevQuestions
             }
+
         return jsonify(result)
 
     """

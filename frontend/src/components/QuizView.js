@@ -49,6 +49,7 @@ class QuizView extends Component {
     const previousQuestions = [...this.state.previousQuestions];
     if (this.state.currentQuestion.id) {
       previousQuestions.push(this.state.currentQuestion.id);
+      // console.log("PREV QTNS: ", previousQuestions)
     }
 
     $.ajax({
@@ -67,7 +68,7 @@ class QuizView extends Component {
       crossDomain: true,
       success: (result) => {
         // console.log(previousQuestions)
-        console.log(result.question)
+        // console.log("RESULT IS: ", result)
         this.setState({
           showAnswer: false,
           previousQuestions: previousQuestions,
@@ -151,7 +152,9 @@ class QuizView extends Component {
       // eslint-disable-next-line
       .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, '')
       .toLowerCase();
-    const answerArray = this.state.currentQuestion.answer
+      // console.log("CURRENT ", this.state.currentQuestion)
+      // const answerArray = {}
+      const answerArray = this.state.currentQuestion.answer
       .toLowerCase()
       .split(' ');
     return answerArray.every((el) => formatGuess.includes(el));

@@ -32,9 +32,14 @@ class FormView extends Component {
   }
 
   submitQuestion = (event) => {
+    console.log("QUESTION: ", this.state.question)
+    console.log("ANSWER: ", this.state.answer)
+    console.log("DIFFICULTY: ", this.state.difficulty)
+    console.log("CATEGORY: ", this.state.category)
+
     event.preventDefault();
     $.ajax({
-      url: `${base_url}/questions/add`, //TODO: update request URL #MOdified url to append */create*
+      url: `${base_url}/questions/add`, //TODO: update request URL
       type: 'POST',
       dataType: 'json',
       contentType: 'application/json',
@@ -45,7 +50,7 @@ class FormView extends Component {
         category: this.state.category,
       }),
       xhrFields: {
-        withCredentials: true,
+        withCredentials: false, //true
       },
       crossDomain: true,
       success: (result) => {
