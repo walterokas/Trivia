@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import $ from 'jquery';
 import '../stylesheets/QuizView.css';
 
+const base_url = "http://localhost:5000"
+
 const questionsPerPlay = 5;
 
 class QuizView extends Component {
@@ -21,7 +23,7 @@ class QuizView extends Component {
 
   componentDidMount() {
     $.ajax({
-      url: `/categories`, //TODO: update request URL
+      url: `${base_url}/categories`, //TODO: update request URL
       type: 'GET',
       success: (result) => {
         this.setState({ categories: result.categories });
@@ -35,6 +37,7 @@ class QuizView extends Component {
   }
 
   selectCategory = ({ type, id = 0 }) => {
+    console.log("ID: ", id)
     this.setState({ quizCategory: { type, id } }, this.getNextQuestion);
   };
 
@@ -49,19 +52,22 @@ class QuizView extends Component {
     }
 
     $.ajax({
-      url: '/quizzes', //TODO: update request URL
+      url: `${base_url}/quizzes`, //TODO: update request URL
       type: 'POST',
       dataType: 'json',
       contentType: 'application/json',
+      // data: JSON.stringify({"testing": "testing"}),
       data: JSON.stringify({
-        previous_questions: previousQuestions,
-        quiz_category: this.state.quizCategory,
+       previous_questions: previousQuestions,
+       quiz_category: this.state.quizCategory,
       }),
       xhrFields: {
-        withCredentials: true,
+       withCredentials: false, //true,
       },
       crossDomain: true,
       success: (result) => {
+        // console.log(previousQuestions)
+        console.log(result.question)
         this.setState({
           showAnswer: false,
           previousQuestions: previousQuestions,
@@ -108,6 +114,7 @@ class QuizView extends Component {
             ALL
           </div>
           {Object.keys(this.state.categories).map((id) => {
+            // console.log(this.state.categories[id])
             return (
               <div
                 key={id}
