@@ -77,8 +77,12 @@ def create_app(test_config=None):
         formatted_questions = [question.format() for question in questions]
 
         formatted_categories = {}
-        for category in Category.query.all():
-            formatted_categories[category.id] = category.type
+
+        try:
+            for category in Category.query.all():
+                formatted_categories[category.id] = category.type
+        except:
+            abort(404)
 
         result = {
             "questions": formatted_questions[start:end],
@@ -106,7 +110,11 @@ def create_app(test_config=None):
     @app.route('/questions/<int:id>', methods=['DELETE'])
     def deleteQuestion(id):
         del_obj = Question.query.filter_by(id=id).first()
-        Question.delete(del_obj)
+
+        try:
+            Question.delete(del_obj)
+        except:
+            abort(404)
 
         return jsonify({"status": "Success", "error": "200"})
 
@@ -134,7 +142,10 @@ def create_app(test_config=None):
                 difficulty = data.get('difficulty', None)
             )
 
-            Question.insert(question_obj)
+            try:
+                Question.insert(question_obj)
+            except:
+                abort(422)
 
         return jsonify({"Status": "Question Added Successfully"})
 
@@ -158,7 +169,11 @@ def create_app(test_config=None):
 
         searchTerm = request.form.get('searchTerm')
         print(searchTerm)
-        questions = Question.query.filter(Question.question.ilike("%{}%".format(searchTerm)))
+
+        try:
+            questions = Question.query.filter(Question.question.ilike("%{}%".format(searchTerm)))
+        except:
+            abort(404)
 
         formatted_questions = [question.format() for question in questions]
 
@@ -182,6 +197,10 @@ def create_app(test_config=None):
     """
     @app.route('/categories/<int:id>/questions', methods=['GET'])
     def getQuestionsByCategory(id):
+
+        if id is None:
+            abort(422)
+            
         page = request.args.get('page', 1 , type=int)
         start = (page-1) * QUESTIONS_PER_PAGE
         end = start + QUESTIONS_PER_PAGE
