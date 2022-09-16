@@ -53,6 +53,8 @@ def create_app(test_config=None):
 
         categories = Category.query.all()
         formatted_categories = [category.type for category in categories]
+        # formatted_categories = [category.format() for category in categories]
+
         result = {
             "categories": formatted_categories
         }
@@ -134,6 +136,9 @@ def create_app(test_config=None):
     def create_Question():
         if request.method == 'POST':
             data = json.loads(request.data)
+            print(data)
+            # categories = Category.query.all()
+            # formatted_categories = [category.format() for category in categories]
 
             question_obj = Question(
                 question = data.get('question', None),
@@ -167,8 +172,8 @@ def create_app(test_config=None):
         start = (page-1) * QUESTIONS_PER_PAGE
         end = start + QUESTIONS_PER_PAGE
 
-        searchTerm = request.form.get('searchTerm')
-        print(searchTerm)
+        data = json.loads(request.data)
+        searchTerm = data.get('searchTerm')
 
         try:
             questions = Question.query.filter(Question.question.ilike("%{}%".format(searchTerm)))
@@ -179,7 +184,7 @@ def create_app(test_config=None):
 
         result = {
             "questions": formatted_questions[start:end],
-            "total_questions": len(questions),
+            "total_questions": questions.count(),
             "current_category": []
         }
 
