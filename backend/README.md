@@ -90,6 +90,146 @@ You will need to provide detailed documentation of your API endpoints including 
 }
 ```
 
+`GET '/api/v1.0/questions'`
+
+- Fetches a dictionary of questions in which the keys are the ids and the value is the corresponding string of the questions
+- Request Arguments: None
+- Returns: An object with a single key, `questions`, that contains an object of `id: question_string` key: value pairs.
+
+```json
+{
+  "categories": {
+    "1": "Science",
+    "2": "Art",
+    "3": "Geography",
+    "4": "History",
+    "5": "Entertainment",
+    "6": "Sports"
+  },
+  "current_category": [],
+  "questions": [
+    {
+      "answer": "Muhammad Ali",
+      "category": "4",
+      "difficulty": 1,
+      "id": 9,
+      "question": "What boxer's original name is Cassius Clay?"
+    },
+    {
+      "answer": "Apollo 13",
+      "category": "5",
+      "difficulty": 4,
+      "id": 2,
+      "question": "What movie earned Tom Hanks his third straight Oscar nomination, in 1996?"
+    }
+  ],
+  "total_questions": 19
+}
+
+```
+
+`DELETE '/api/v1.0/questions/1'`
+
+- Deletes a question object with the associated id in the parameters
+- Request Arguments: id
+- Returns: An object with keys, `status`, `error` and `id`, of h deleted object.
+
+```json
+{
+  "status": "Success", 
+  "error": "200", 
+  "id": id
+  }
+```
+
+`POST '/api/v1.0/questions/add'`
+
+- Adds a new question object to the question model file.
+- Request Arguments: id
+- Returns: An object with key `status`, of the added object.
+
+```json
+{
+  "status": "Question Added Successfully", 
+  }
+```
+
+`POST '/api/v1.0/questions/search'`
+
+- Fetches a dictionary of questions in which the keys are the ids and the value is the corresponding string of the questions
+- Request Arguments: SearchTerm
+- Returns: A questions object containing the searh query term that contains an object of key: value pairs.
+- If `searchTerm` was `1996`, the following would be returned which each have the string of year 1996
+
+```json
+{
+  "questions": [
+    {
+      "answer": "Muhammad Ali",
+      "category": "1",
+      "difficulty": 1,
+      "id": 9,
+      "question": "What boxer's original name is Cassius Clay of 1996?"
+    },
+    {
+      "answer": "Apollo 13",
+      "category": "3",
+      "difficulty": 4,
+      "id": 2,
+      "question": "What movie earned Tom Hanks his third straight Oscar nomination, in 1996?"
+    }
+  ],
+  "total_questions": 2,
+  "current_category": []
+}
+```
+
+`GET '/api/v1.0/categories/<int:id>questions'`
+
+- Fetches a dictionary of questions that belong to a selected category
+- Request Arguments: category_id
+- Returns: A questions object containing the searh query term that contains an object of key: value pairs.
+
+```json
+{
+  "questions": [
+    {
+      "answer": "Muhammad Ali",
+      "category": "1",
+      "difficulty": 1,
+      "id": 9,
+      "question": "What boxer's original name is Cassius Clay?"
+    },
+    {
+      "answer": "Apollo 13",
+      "category": "1",
+      "difficulty": 4,
+      "id": 2,
+      "question": "What movie earned Tom Hanks his third straight Oscar nomination, in 1996?"
+    }
+  ],
+  "total_questions": 2,
+  "current_category": []
+}
+```
+
+`POST '/api/v1.0/quizzes'`
+
+- Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
+- Request Arguments: category, previous_question
+- Returns: A random question based on the category selected and never repeats a question that's already in previous_questions
+
+```json
+  {
+    "answer": "Muhammad Ali",
+    "category": "1",
+    "difficulty": 1,
+    "id": 9,
+    "question": "What boxer's original name is Cassius Clay?"
+  },
+```
+
+
 ## Testing
 
 Write at least one test for the success and at least one error behavior of each endpoint using the unittest library.

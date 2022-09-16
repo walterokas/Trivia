@@ -116,7 +116,7 @@ def create_app(test_config=None):
         except:
             abort(404)
 
-        return jsonify({"status": "Success", "error": "200"})
+        return jsonify({"status": "Success", "error": "200", "id": id})
 
 
     """
@@ -147,7 +147,7 @@ def create_app(test_config=None):
             except:
                 abort(422)
 
-        return jsonify({"Status": "Question Added Successfully"})
+        return jsonify({"status": "Question Added Successfully"})
 
     """
     TEST: When you submit a question on the "Add" tab,
@@ -199,7 +199,7 @@ def create_app(test_config=None):
     def getQuestionsByCategory(id):
 
         if id is None:
-            abort(422)
+            abort(500)
             
         page = request.args.get('page', 1 , type=int)
         start = (page-1) * QUESTIONS_PER_PAGE
@@ -231,6 +231,8 @@ def create_app(test_config=None):
     """
     @app.route('/quizzes', methods=['POST'])
     def play_quiz():
+        if request.method != 'POST':
+            abort(405)
         if request.method == 'POST':
             data = json.loads(request.data)
             prevQuestions = data['previous_questions']
@@ -238,13 +240,23 @@ def create_app(test_config=None):
             print("CATEGORY ID: ", category_type)
 
             matched_category = Category.query.filter_by(type=category_type).first()
-            questions = Question.query.filter_by(category=str(matched_category.id)).all()
-            formatted_questions = [question.format() for question in questions]
+            try:
+                # When a category is selected on the play tab and id is passed
+                questions = Question.query.filter_by(category=str(matched_category.id)).all()
+            except:
+                # When ALL is selected and no id is passed
+                questions = Question.query.all()
+                
+            # formatted_questions = [question.format() for question in questions]
+            formatted_questions = [question.format() for question in questions if question.id not in prevQuestions]
             random.shuffle(formatted_questions)
 
             # print("FORMATTED QUESTIONS: ", formatted_questions)
-            question = formatted_questions[0]
-            
+            try:
+                question = formatted_questions[0]
+            except:
+                abort(404)
+
         result = {
             "question":question, 
             # "prevQuestions":prevQuestions
@@ -303,6 +315,57 @@ def create_app(test_config=None):
             "error": 422,
             "message": "Unprocessable Entity"
         }),422
+
+    @app.errorhandler(500)
+    def unprocessable(e):
+        return jsonify({
+            "success": False,
+            "error": 500,
+            "message": "Internal Server Error"
+        }),500
+
+    @app.errorhandler(501)
+    def notImplemented(e):
+        return jsonify({
+            "success": False,
+            "error": 501,
+            "message": "Not Implemented"
+        }),501
+
+    @app.errorhandler(502)
+    def badGateway(e):
+        return jsonify({
+            "success": False,
+            "error": 502,
+            "message": "Bad Gateway"
+        }),502
+
+    @app.errorhandler(503)
+    def serviceUnavailable(e):
+        return jsonify({
+            "success": False,
+            "error": 503,
+            "message": "Service Unavailable"
+        }),503
+
+    @app.errorhandler(504)
+    def gatewayTimeout(e):
+        return jsonify({
+            "success": False,
+            "error": 504,
+            "message": "Gateway Timeout"
+        }),504
+
+    @app.errorhandler(505)
+    def httpUnsupported(e):
+        return jsonify({
+            "success": False,
+            "error": 505,
+            "message": "HTTP Version Not Supported"
+        }),505
+
+
+
 
     return app
 
