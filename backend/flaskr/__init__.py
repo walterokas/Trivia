@@ -242,7 +242,7 @@ def create_app(test_config=None):
             data = json.loads(request.data)
             prevQuestions = data['previous_questions']
             category_type = data['quiz_category'].get('type', None)
-            print("CATEGORY ID: ", category_type)
+            # print("CATEGORY ID: ", category_type)
 
             matched_category = Category.query.filter_by(type=category_type).first()
             try:

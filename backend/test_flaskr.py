@@ -4,6 +4,7 @@ import json
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
 load_dotenv()
+from flask import session
 
 from flaskr import create_app
 from models import setup_db, Question, Category
@@ -19,6 +20,10 @@ domain=os.getenv('DOMAIN')
 port=os.getenv('PORT')
 database_path = f'{engine}://{username}:{password}@{domain}:{port}/{database_name}'
 
+# RESOURCES https://flask.palletsprojects.com/en/2.2.x/testing/
+# RESOURCES https://github.com/mjhea0/flaskr-tdd/blob/master/project/app.py
+# RESOURCES https://dev.to/paurakhsharma/flask-rest-api-part-6-testing-rest-apis-4lla
+# RESOURCES https://lovelace.oulu.fi/ohjelmoitava-web/programmable-web-project-spring-2019/testing-flask-applications-part-2/
 
 class TriviaTestCase(unittest.TestCase):
     """This class represents the trivia test case"""
@@ -51,6 +56,7 @@ class TriviaTestCase(unittest.TestCase):
         res = self.client().get('/categories')
 
         self.assertEqual(res.status_code, 200)
+        self.assertNotEqual(res, None)
 
     def test_get_questions(self):
         res = self.client().get('/questions')
@@ -58,30 +64,55 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
 
     def test_delete_question(self):
-        res = self.client().get('/questions/<int:id>')
+        res = self.client().delete('/questions/4', follow_redirects=True)
+        print("Delete: ", res)
 
         self.assertEqual(res.status_code, 200)
 
     def test_add_question(self):
-        res = self.client().get('/questions/add')
+        res = self.client().post('/questions/add', 
+            data = json.dumps({
+                "question": "How are you today?",
+                "answer": "Very well",
+                "category": "2",
+                "difficulty": "4"
+                })
+            )
 
         self.assertEqual(res.status_code, 200)
 
+    # def test_search_questions(client):
+    #     with client.session_transation() as session:
+    #         session["searchTerm"] = "the"
+        
+    #     res = client().get('/questions/search')
+
+    #     assert res.json["status_code"] == 200
+
     def test_search_questions(self):
-        res = self.client().get('/questions/search')
+        res = self.client().post('/questions/search', 
+            data = json.dumps({
+                "searchTerm": "the"
+            })
+        )
 
         self.assertEqual(res.status_code, 200)
 
     def test_get_questions_based_on_category(self):
-        res = self.client().get('/category/<int:id>/questions')
+        res = self.client().get('/categories/1/questions')
 
         self.assertEqual(res.status_code, 200)
 
     def test_play_quiz(self):
-        res = self.client().get('/quizzes')
+        res = self.client().post('/quizzes', 
+            data = json.dumps({
+                "previous_questions": [1,2,3],
+                "quiz_category": {"6": "Sports"}
+            })
+        )
 
         self.assertEqual(res.status_code, 200)
-        # self.assert(len(res) >= 1)
+
 
 # Make the tests conveniently executable
 if __name__ == "__main__":
