@@ -1,5 +1,7 @@
 from email.mime import base
-import os, sys, json
+import os
+import sys
+import json
 from unicodedata import category
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
@@ -11,10 +13,10 @@ current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
 sys.path.append(parent)
 
-
 from models import setup_db, Question, Category
 
 QUESTIONS_PER_PAGE = 10
+
 
 def create_app(test_config=None):
     # create and configure the app
@@ -23,7 +25,8 @@ def create_app(test_config=None):
     print("App Created Successful")
 
     """
-    @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
+    @TODO: Set up CORS. Allow '*' for origins.
+    Delete the sample route after completing the TODOs
     """
     cors = CORS(app, resources={r"/": {"origins": "*"}})
 
@@ -32,13 +35,17 @@ def create_app(test_config=None):
     """
     @app.after_request
     def add_cors(resp):
-        #Ensure all responses have the CORS headers. This ensures any failures are also accessible by the client.
-        
+        # Ensure all responses have the CORS headers.
+        # This ensures any failures are also accessible by the client.
         resp.headers.add('Access-Control-Allow-Origin', '*')
-        resp.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-        resp.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE')
+        resp.headers.add(
+            'Access-Control-Allow-Headers', 'Content-Type, Authorization'
+            )
+        resp.headers.add(
+            'Access-Control-Allow-Methods', 'GET, PUT, POST, DELETE'
+            )
 
-        #set low for debugging
+        # Set low for debugging
         if app.debug:
             resp.headers['Acess-Control-Max-Age'] = '1'
         return resp
@@ -53,13 +60,11 @@ def create_app(test_config=None):
 
         categories = Category.query.all()
         formatted_categories = [category.type for category in categories]
-        # formatted_categories = [category.format() for category in categories]
 
         result = {
             "categories": formatted_categories
         }
         return jsonify(result)
-
 
     """
     @TODO:
@@ -68,16 +73,14 @@ def create_app(test_config=None):
     This endpoint should return a list of questions,
     number of total questions, current category, categories.
     """
+
     @app.route('/questions', methods=['GET'])
     def listQuestions():
-        page = request.args.get('page', 1 , type=int)
-        start = (page-1) * QUESTIONS_PER_PAGE
+        page = request.args.get('page', 1, type=int)
+        start = (page - 1) * QUESTIONS_PER_PAGE
         end = start + QUESTIONS_PER_PAGE
-        
         questions = Question.query.all()
-
         formatted_questions = [question.format() for question in questions]
-
         formatted_categories = {}
 
         try:
@@ -89,7 +92,6 @@ def create_app(test_config=None):
         result = {
             "questions": formatted_questions[start:end],
             "total_questions": len(questions),
-            # "categories": list({category.type for category in Category.query.all()}), #set comprehension cast to list
             "categories": formatted_categories,
             "current_category": []
         }
@@ -97,18 +99,19 @@ def create_app(test_config=None):
         # return json.dumps(result)
         return jsonify(result)
 
-
     """
     TEST: At this point, when you start the application
     you should see questions and categories generated,
-    ten questions per page and pagination at the bottom of the screen for three pages.
-    Clicking on the page numbers should update the questions.
+    ten questions per page and pagination at the bottom of the
+    screen for three pages. Clicking on the page numbers should
+    update the questions.
     """
 
     """
     @TODO:
     Create an endpoint to DELETE question using a question ID.
     """
+
     @app.route('/questions/<int:id>', methods=['DELETE'])
     def deleteQuestion(id):
         del_obj = Question.query.filter_by(id=id).first()
@@ -120,10 +123,10 @@ def create_app(test_config=None):
 
         return jsonify({"status": "Success", "error": "200", "id": id})
 
-
     """
-    TEST: When you click the trash icon next to a question, the question will be removed.
-    This removal will persist in the database and when you refresh the page.
+    TEST: When you click the trash icon next to a question, the question
+    will be removed. This removal will persist in the database and when
+    you refresh the page.
     """
 
     """
@@ -132,20 +135,22 @@ def create_app(test_config=None):
     which will require the question and answer text,
     category, and difficulty score.
     """
+
     @app.route('/questions/add', methods=['POST'])
     def create_Question():
         if request.method == 'POST':
             data = json.loads(request.data)
             print(data)
             # categories = Category.query.all()
-            # formatted_categories = [category.format() for category in categories]
+            # formatted_categories = [
+            # category.format() for category in categories]
 
             question_obj = Question(
-                question = data.get('question', None),
-                answer = data.get('answer', None),
-                category = data.get('category', None),
-                difficulty = data.get('difficulty', None)
-            )
+                question=data.get('question', None),
+                answer=data.get('answer', None),
+                category=data.get('category', None),
+                difficulty=data.get('difficulty', None)
+                )
 
             try:
                 Question.insert(question_obj)
@@ -156,8 +161,8 @@ def create_app(test_config=None):
 
     """
     TEST: When you submit a question on the "Add" tab,
-    the form will clear and the question will appear at the end of the last page
-    of the questions list in the "List" tab.
+    the form will clear and the question will appear at the end
+    of the last page of the questions list in the "List" tab.
     """
 
     """
@@ -166,9 +171,10 @@ def create_app(test_config=None):
     It should return any questions for whom the search term
     is a substring of the question.
     """
+
     @app.route('/questions/search', methods=['POST'])
     def search_question():
-        page = request.args.get('page', 1 , type=int)
+        page = request.args.get('page', 1, type=int)
         start = (page-1) * QUESTIONS_PER_PAGE
         end = start + QUESTIONS_PER_PAGE
 
@@ -176,7 +182,9 @@ def create_app(test_config=None):
         searchTerm = data.get('searchTerm')
 
         try:
-            questions = Question.query.filter(Question.question.ilike("%{}%".format(searchTerm)))
+            questions = Question.query.filter(
+                Question.question.ilike("%{}%".format(searchTerm))
+                )
         except:
             abort(404)
 
@@ -200,13 +208,13 @@ def create_app(test_config=None):
     @TODO:
     Create a GET endpoint to get questions based on category.
     """
+
     @app.route('/categories/<int:id>/questions', methods=['GET'])
     def getQuestionsByCategory(id):
 
         if id is None:
             abort(500)
-            
-        page = request.args.get('page', 1 , type=int)
+        page = request.args.get('page', 1, type=int)
         start = (page-1) * QUESTIONS_PER_PAGE
         end = start + QUESTIONS_PER_PAGE
 
@@ -234,6 +242,7 @@ def create_app(test_config=None):
     and return a random questions within the given category,
     if provided, and that is not one of the previous questions.
     """
+
     @app.route('/quizzes', methods=['POST'])
     def play_quiz():
         if request.method != 'POST':
@@ -242,29 +251,30 @@ def create_app(test_config=None):
             data = json.loads(request.data)
             prevQuestions = data['previous_questions']
             category_type = data['quiz_category'].get('type', None)
-            # print("CATEGORY ID: ", category_type)
 
-            matched_category = Category.query.filter_by(type=category_type).first()
+            matched_category = Category.query.filter_by(
+                type=category_type
+                ).first()
             try:
                 # When a category is selected on the play tab and id is passed
-                questions = Question.query.filter_by(category=str(matched_category.id)).all()
+                questions = Question.query.filter_by(
+                    category=str(matched_category.id)
+                    ).all()
             except:
                 # When ALL is selected and no id is passed
                 questions = Question.query.all()
-                
-            # formatted_questions = [question.format() for question in questions]
-            formatted_questions = [question.format() for question in questions if question.id not in prevQuestions]
+            formatted_questions = [
+                question.format() for question in questions
+                if question.id not in prevQuestions]
             random.shuffle(formatted_questions)
 
-            # print("FORMATTED QUESTIONS: ", formatted_questions)
             try:
                 question = formatted_questions[0]
             except:
                 abort(404)
 
         result = {
-            "question":question, 
-            # "prevQuestions":prevQuestions
+            "question": question,
             }
 
         return jsonify(result)
@@ -319,7 +329,7 @@ def create_app(test_config=None):
             "success": False,
             "error": 422,
             "message": "Unprocessable Entity"
-        }),422
+        }), 422
 
     @app.errorhandler(500)
     def unprocessable(e):
@@ -327,7 +337,7 @@ def create_app(test_config=None):
             "success": False,
             "error": 500,
             "message": "Internal Server Error"
-        }),500
+        }), 500
 
     @app.errorhandler(501)
     def notImplemented(e):
@@ -335,7 +345,7 @@ def create_app(test_config=None):
             "success": False,
             "error": 501,
             "message": "Not Implemented"
-        }),501
+        }), 501
 
     @app.errorhandler(502)
     def badGateway(e):
@@ -343,7 +353,7 @@ def create_app(test_config=None):
             "success": False,
             "error": 502,
             "message": "Bad Gateway"
-        }),502
+        }), 502
 
     @app.errorhandler(503)
     def serviceUnavailable(e):
@@ -351,7 +361,7 @@ def create_app(test_config=None):
             "success": False,
             "error": 503,
             "message": "Service Unavailable"
-        }),503
+        }), 503
 
     @app.errorhandler(504)
     def gatewayTimeout(e):
@@ -359,7 +369,7 @@ def create_app(test_config=None):
             "success": False,
             "error": 504,
             "message": "Gateway Timeout"
-        }),504
+        }), 504
 
     @app.errorhandler(505)
     def httpUnsupported(e):
@@ -367,10 +377,6 @@ def create_app(test_config=None):
             "success": False,
             "error": 505,
             "message": "HTTP Version Not Supported"
-        }),505
-
-
-
+        }), 505
 
     return app
-
