@@ -145,10 +145,11 @@ def create_app(test_config=None):
             # formatted_categories = [
             # category.format() for category in categories]
 
+            print("NEW CATEGORY ID: ", int(data.get('category', None)) + 1)
             question_obj = Question(
                 question=data.get('question', None),
                 answer=data.get('answer', None),
-                category=data.get('category', None),
+                category=str(int(data.get('category', None)) + 1),
                 difficulty=data.get('difficulty', None)
                 )
 
@@ -255,6 +256,7 @@ def create_app(test_config=None):
             matched_category = Category.query.filter_by(
                 type=category_type
                 ).first()
+
             try:
                 # When a category is selected on the play tab and id is passed
                 questions = Question.query.filter_by(
@@ -271,7 +273,8 @@ def create_app(test_config=None):
             try:
                 question = formatted_questions[0]
             except:
-                abort(404)
+                # abort(404)
+                question = None
 
         result = {
             "question": question,

@@ -21,6 +21,7 @@ class FormView extends Component {
       url: `${base_url}/categories`, //TODO: update request URL
       type: 'GET',
       success: (result) => {
+        console.log("CATEGORIES INIT: ", result.categories)
         this.setState({ categories: result.categories });
         return;
       },
