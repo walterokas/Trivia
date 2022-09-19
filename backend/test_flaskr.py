@@ -60,14 +60,17 @@ class TriviaTestCase(unittest.TestCase):
 
     def test_get_questions(self):
         res = self.client().get('/questions')
-
         self.assertEqual(res.status_code, 200)
 
     def test_delete_question(self):
+        res = self.client().delete('/questions/10', follow_redirects=True)
+        print("Delete: ", res)
+        self.assertEqual(res.status_code, 200)
+
+        # Test Fail case
         res = self.client().delete('/questions/4', follow_redirects=True)
         print("Delete: ", res)
-
-        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.status_code, 404)
 
     def test_add_question(self):
         res = self.client().post('/questions/add', 
@@ -78,16 +81,18 @@ class TriviaTestCase(unittest.TestCase):
                 "difficulty": "4"
                 })
             )
-
         self.assertEqual(res.status_code, 200)
 
-    # def test_search_questions(client):
-    #     with client.session_transation() as session:
-    #         session["searchTerm"] = "the"
-        
-    #     res = client().get('/questions/search')
-
-    #     assert res.json["status_code"] == 200
+        # Test Fail Case
+        res = self.client().post('/questions/add', 
+            data = json.dumps({
+                "question": "How are you today?",
+                "answer": "Very well",
+                "category": "",
+                "difficulty": "4"
+                })
+            )
+        self.assertEqual(res.status_code, 422)
 
     def test_search_questions(self):
         res = self.client().post('/questions/search', 
@@ -95,13 +100,23 @@ class TriviaTestCase(unittest.TestCase):
                 "searchTerm": "the"
             })
         )
-
         self.assertEqual(res.status_code, 200)
+
+        # Test Fail case
+        res = self.client().post('/questions/search', 
+            data = json.dumps({
+                "searchTerm": ""
+            })
+        )
+        self.assertEqual(res.status_code, 404)
 
     def test_get_questions_based_on_category(self):
         res = self.client().get('/categories/1/questions')
-
         self.assertEqual(res.status_code, 200)
+
+        # Test Fail case
+        res = self.client().get('/categories/15/questions')
+        self.assertEqual(res.status_code, 500)
 
     def test_play_quiz(self):
         res = self.client().post('/quizzes', 
@@ -110,9 +125,15 @@ class TriviaTestCase(unittest.TestCase):
                 "quiz_category": {"6": "Sports"}
             })
         )
-
         self.assertEqual(res.status_code, 200)
 
+        # Test Fail case
+        res = self.client().post('/quizzes', 
+            data = json.dumps({
+                "quiz_category": {"6": "Sports"}
+            })
+        )
+        self.assertEqual(res.status_code, 500)
 
 # Make the tests conveniently executable
 if __name__ == "__main__":

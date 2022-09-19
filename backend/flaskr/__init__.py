@@ -59,6 +59,10 @@ def create_app(test_config=None):
     def listCategories():
 
         categories = Category.query.all()
+
+        if categories is None:
+            abort(404)
+            
         formatted_categories = [category.type for category in categories]
 
         result = {
@@ -140,21 +144,18 @@ def create_app(test_config=None):
     def create_Question():
         if request.method == 'POST':
             data = json.loads(request.data)
-            print(data)
-            # categories = Category.query.all()
-            # formatted_categories = [
-            # category.format() for category in categories]
 
-            print("NEW CATEGORY ID: ", int(data.get('category', None)) + 1)
-            question_obj = Question(
-                question=data.get('question', None),
-                answer=data.get('answer', None),
-                category=str(int(data.get('category', None)) + 1),
-                difficulty=data.get('difficulty', None)
-                )
-
+            # print("NEW CATEGORY ID: ", int(data.get('category', None)) + 1)
             try:
+                question_obj = Question(
+                    question=data.get('question', None),
+                    answer=data.get('answer', None),
+                    category=str(int(data.get('category', None)) + 1),
+                    difficulty=data.get('difficulty', None)
+                    )
+
                 Question.insert(question_obj)
+
             except:
                 abort(422)
 
@@ -181,6 +182,9 @@ def create_app(test_config=None):
 
         data = json.loads(request.data)
         searchTerm = data.get('searchTerm')
+
+        if searchTerm == "":
+            abort(404)
 
         try:
             questions = Question.query.filter(
@@ -212,14 +216,13 @@ def create_app(test_config=None):
 
     @app.route('/categories/<int:id>/questions', methods=['GET'])
     def getQuestionsByCategory(id):
-
-        if id is None:
-            abort(500)
         page = request.args.get('page', 1, type=int)
         start = (page-1) * QUESTIONS_PER_PAGE
         end = start + QUESTIONS_PER_PAGE
 
         questions = Question.query.filter_by(category=str(id))
+        if questions.count()==0:
+            abort(500)
         formatted_questions = [question.format() for question in questions]
 
         result = {
@@ -250,7 +253,12 @@ def create_app(test_config=None):
             abort(405)
         if request.method == 'POST':
             data = json.loads(request.data)
-            prevQuestions = data['previous_questions']
+
+            try:
+                prevQuestions = data['previous_questions']
+            except:
+                abort(500)
+
             category_type = data['quiz_category'].get('type', None)
 
             matched_category = Category.query.filter_by(
@@ -335,7 +343,7 @@ def create_app(test_config=None):
         }), 422
 
     @app.errorhandler(500)
-    def unprocessable(e):
+    def internal_server_error(e):
         return jsonify({
             "success": False,
             "error": 500,
